@@ -1,0 +1,169 @@
+<html>
+<head>
+<meta charset="UTF-8">
+
+<link rel="shortcut icon" type="image/png" href="{{url_for('static',filename='favicon-16x16.png')}}"/>
+
+<style>
+
+  .search-option {
+    padding: 5px 10px 0px 0px;
+    width: 100%;
+  }
+
+  .search-option-text {
+    font-size: 1.2em !important;
+  }
+
+  .header-icon {
+    padding-left: 5px;
+  }
+
+  .highlight-text {
+    color: red;
+  }
+
+</style>
+
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.js"></script> 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-84401327-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+<title>引用{{data.caseId}}的判決</title>
+
+</head>
+<body>
+
+<div style="margin:50px;">
+  <div class="ui items" id="results" style="margin-left:50px;float:left;width:70%;">
+    <h1 class="ui header">引用{{data.caseId}}的判決 </h1>
+    {% if data.count > 0 %}
+
+       第{{data.pageNumber}}/{{data.maxPage-1}}頁 (共找到 {{data.count}} 個判決)
+      <div class="ui breadcrumb" style="float:right;">
+
+        {%if data.sortByTime%}
+          <a class="sorting-option section" id="sort-by-importance">按引用次數排序</a>
+          <span class="divider">/</span>
+          <div class="sorting-option section" id="sort-by-time">按時間排序</div>
+        {% else %}
+          <div class="sorting-option section" id="sort-by-importance">按引用次數排序</div>
+          <span class="divider">/</span>
+          <a class="sorting-option section" id="sort-by-time">按時間排序</a>        
+        {% endif %}        
+
+      </div>
+      <div class="ui divider"></div>
+    {% endif %}
+
+    {%for result in data.results%}
+      <div class="item">
+        <div class="content">
+          <a href="/judgement?id={{result.id}}" target="_blank" class="header">【{{result.court}}】{{result.case_id}} - {{result.reason}} </a>
+
+          <div class="meta" style="text-align:right">
+            {%if result.example%}
+              <span class="ui teal label" >判例</span>
+            {%endif%}
+            <span>共 {{result.wordCount}} 字</span> ｜
+            <span>{{result.year}} 年 {{result.month}} 月 {{result.day}} 日</span>
+          </div>
+          
+          <div class="description">
+            <p>{{result.highlight|safe}} ...</p>
+          </div>
+          {% if result.citation_count > 0%}
+            <div class="extra" style="text-align:right;">
+              <a href="/citation?id={{result.case_id}}" target="_blank"><i class="green check icon"></i>被引用 {{result.citation_count}} 次</a> 
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="ui divider"></div>
+    {% endfor %}
+    <div style="width:{{data.paginationWidth}};margin: 0 auto;">
+      <div class="ui pagination menu" >
+        {%for page in data.pageOptions %}
+          {% if page > 0 and page < data.maxPage %}
+
+            {% if page == data.pageNumber %}
+              <a class="active item">
+                {{page}}
+              </a>
+            {% elif page < data.pageNumber - 5 %}
+              <a class="item page-option" id='page-{{page}}'>
+
+                ﹣{{data.pageNumber - page}}
+            {% elif page > data.pageNumber + 5 %}
+              <a class="item page-option" id='page-{{page}}'>
+  
+                ＋{{page - data.pageNumber }}
+            {% else %}
+              <a class="item page-option" id='page-{{page}}'>
+                {{page}}
+              </a>
+
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+      </div>
+    </div>   
+  </div>
+
+</div>  
+
+
+
+</body>
+
+<script>
+  
+
+  var pageNumber = {{data.pageNumber}}; 
+
+
+  var sorting = '{{data.sorting}}';
+
+  var caseId = '{{data.caseId}}';
+
+  function redirect(pageNumber,sorting){
+    console.log('in redirect');
+    var url = '/citation?id=' + caseId + '&page_number=' + pageNumber + '&sorting=' + sorting;
+
+
+    window.location.href = url;
+
+  }
+ 
+  
+  //handle events below
+
+
+  $('a.sorting-option').click(function(){
+    sorting = this.id.split('-')[2];
+    redirect(1, sorting);
+  });
+  
+  $('a.page-option').click(function(){
+    pageNumber = this.id.split('-')[1];
+    redirect(pageNumber, sorting);
+  });  
+
+</script>
+
+</html>

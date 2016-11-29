@@ -1,0 +1,700 @@
+<html>
+<head>
+<meta charset="UTF-8">
+
+<link rel="shortcut icon" type="image/png" href="{{url_for('static',filename='favicon-16x16.png')}}"/>
+
+<style>
+
+  .search-option {
+    padding: 5px 10px 0px 0px;
+    width: 100%;
+  }
+
+  .search-option-text {
+    font-size: 1.2em !important;
+  }
+
+  .header-icon {
+    padding-left: 5px;
+  }
+
+  .highlight-text {
+    color: red;
+  }
+
+  .search-bar-span {
+    margin:15px 15px 0 15px;
+  }
+
+  .search-bar-input {
+    width: 100px;
+  }
+
+  .date-input {
+    width: 60px;
+  }
+
+</style>
+
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.js"></script> 
+
+<link rel="stylesheet" href="{{url_for('static',filename='jquery-ui.css')}}">
+
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-84401327-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+<title>包大人-最好用的判決搜尋引擎</title>
+  
+</head>
+<body>
+
+<div style="margin:50px;">
+
+  <div id="search-bar" style="width:100%;">
+    <div style="float:left;margin-right:10px;">
+       <a href="/">
+      <img src="{{url_for('static',filename='bao.png')}}" style="height:50px;">
+      </a>  
+    </div>
+    <div class="ui big left labeled input" style="width:70%;float:left;">
+
+      <div class="ui dropdown label">
+        <div class="text">全文</div>
+        <i class="dropdown icon"></i>
+        <div class="menu">
+          <div class="item keyword-category">全文</div>
+          <div class="item keyword-category">字號</div>
+          <div class="item keyword-category">主文</div>
+          <div class="item keyword-category">法官</div>
+          <div class="item keyword-category">律師</div>
+          <div class="item keyword-category">案由</div>
+          <div class="item keyword-category">法條</div>
+        </div>
+      </div>
+        <input id="search-keyword" type="text" placeholder="請輸入關鍵詞搜索判決, 或在左方下拉選擇用字號及相關法條查詢" >
+      
+      <span id="id-search" style="display:none;">
+        <span class="search-bar-span"> </span>
+        <input id="id-year" type="text" placeholder="" class="search-bar-input">
+        <span class="search-bar-span">年度 </span>
+        <input id="id-name" type="text" placeholder="" class="search-bar-input">
+        <span class="search-bar-span">字第</span>
+        <input id="id-number" type="text" placeholder="" class="search-bar-input">
+        <span class="search-bar-span">號 </span>
+      </span>
+      <span id="law-search" style="display:none;">
+        <span class="search-bar-span"> </span>
+        <input id="law-name" type="text" placeholder="法規名稱" style="width:200px;">
+        <span class="search-bar-span">第 </span>
+        <input id="law-number" type="text" placeholder="" class="search-bar-input">
+        <span class="search-bar-span">條之</span>
+        <input id="law-subnumber" type="text" placeholder="" class="search-bar-input">
+      </span>
+    </div>
+    <button id="search-button" class="ui large teal button" style="margin-left:10px;">
+      搜尋
+    </button>
+    <button id="negative-button" class="ui large negative button" style="margin-left:10px;">
+      不含
+    </button>
+    <!--
+    <a href="/"> <button class="ui large button" style="margin-left:10px;">
+      清除
+    </button> </a>
+    -->
+  </div>
+  <div id="criteria" style="width:85%;margin:20px;">
+    {%for criterion in data.criteria%}
+      {% if '：-' in criterion %}
+        <div class="ui red large label">
+          {{criterion.replace('：-','：')}}
+        <a class="remove-criteria" id="search-criteria-{{loop.index0}}"><i class="delete icon"></i></a></div>
+      {% else %}
+        <div class="ui teal large label">
+          {{criterion}}
+        <a class="remove-criteria" id="search-criteria-{{loop.index0}}"><i class="delete icon"></i></a></div>
+      {% endif %}      
+    {%endfor%}
+  </div>
+  <div id="lower-part" style="margin-top:20px;padding-left:10px;">
+    <div id="options"  style="width:150px;float:left;margin-top:15px;">
+      <h2 class="ui header">判決類型</h2>
+      <div class="ui checkbox search-option">
+        <input id="category-刑事" class="change-criteria" type="checkbox" >
+        <label class="search-option-text">刑事</label>
+      </div>
+
+      <div class="ui checkbox search-option">
+        <input id="category-民事" class="change-criteria" type="checkbox">
+        <label class="search-option-text">民事</label>
+      </div>
+      <div class="ui divider"></div>      
+      <h2 class="ui header">法院層級</h2>
+      <div class="ui checkbox search-option">
+        <input id="court-判例" class="change-criteria" type="checkbox">
+        <label class="search-option-text">判例</label>
+      </div>
+      <div class="ui checkbox search-option">
+        <input id="court-最高法院" class="change-criteria" type="checkbox">
+        <label class="search-option-text">最高法院</label>
+      </div>
+      <div class="ui checkbox search-option">
+        <input id="court-高等法院" class="change-criteria" type="checkbox">
+        <label class="search-option-text">高等法院</label>
+      </div>
+      <div class="ui checkbox search-option">
+        <input id="court-地方法院" class="change-criteria" type="checkbox">
+        <label class="search-option-text">地方法院</label>
+      </div>
+      <div style="margin-top:10px;">
+        <a class="ui teal label" id="individual-court">
+          按個別法院篩選
+        </a>
+      </div>
+      
+      <div class="ui divider"></div>
+      <h2 class="ui header">案件時間</h2>
+      <div id="slider-container">
+        <h5 id="year" class="ui teal header">
+          <span id="start-year">
+            {%if data.startYear > 88 %}
+              民國{{data.startYear}}年
+            {% else %}
+              開國
+            {% endif %}
+          </span>~<span id="end-year">
+            {%if data.endYear < 105 %}
+              民國{{data.endYear}}年
+            {% else %}
+              最新
+            {% endif %}
+          </span>
+        </h5>
+        <div id="slider-range" style="width:90%;margin-bottom:10px;"></div>
+        <span><i class="info circle icon"></i>拖動調整年度範圍</span>
+      </div>
+      <div style="margin-top:10px;">
+        <a class="ui teal label" id="specific-date">
+          按年/月/日篩選
+        </a>
+      </div>
+      
+    </div>
+
+    <div class="ui items" id="results" style="margin-left:50px;float:left;width:70%;">
+      {% if data.count > 0 %}
+
+        第{{data.pageNumber}}/{{data.maxPage-1}}頁 (共找到 {{data.count}} 個判決)
+        <div class="ui breadcrumb" style="float:right;">
+
+          {%if data.sortByTime%}
+            <div class="sorting-option section" id="sort-by-time">按時間排序</div>
+            <span class="divider">/</span>
+            <a class="sorting-option section" id="sort-by-relevance">按關聯度排序</a>
+            <span class="divider">/</span>
+            <a class="sorting-option section" id="sort-by-importance">按引用次數排序</a> 
+
+
+          {% elif data.sortByRelevance %}
+            <a class="sorting-option section" id="sort-by-time">按時間排序</a>
+            <span class="divider">/</span>
+            <div class="sorting-option section" id="sort-by-relevance">按關聯度排序</div>
+            <span class="divider">/</span>
+            <a class="sorting-option section" id="sort-by-importance">按引用次數排序</a>
+
+          {% else %}
+            <a class="sorting-option section" id="sort-by-time">按時間排序</a>
+            <span class="divider">/</span>
+            <a class="sorting-option section" id="sort-by-relevance">按關聯度排序</a>
+            <span class="divider">/</span>
+            <div class="sorting-option section" id="sort-by-importance" >按引用次數排序</div>
+       
+          {% endif %}        
+          <span class="sorting-info" data-tooltip="僅最高法院判決計算引用次數" data-position="top center"><i class="info circle icon"></i></span>
+        </div>
+        <div class="ui divider"></div>
+
+        {%for result in data.results%}
+          <div class="item">
+            <div class="content">
+              <a class="result-link header" id="{{result.id}}">【{{result.court}}】{{result.case_id}} - {{result.reason}} </a>
+
+              <div class="meta" style="text-align:right">
+                {%if result.example%}
+                  <span class="ui teal label" >判例</span>
+                {%endif%}
+                <span>共 {{result.wordCount}} 字</span> ｜
+                {%if result.keywordCount > 0%}
+                <span>關鍵詞共出現 {{result.keywordCount}} 次</span> ｜
+                {%endif%}
+                <span>{{result.year}} 年 {{result.month}} 月 {{result.day}} 日</span>
+              </div>
+              
+              <div class="description">
+                <p>{{result.highlight|safe}} ... 
+                  {% if result.keywordCount > 0%}
+                  <a class="result-link highlight-keyword" id="{{result.id}}">到關鍵詞出現處</a>
+                  {% endif %}
+                </p>
+              </div>
+              {% if result.citation_count > 0%}
+                <div class="extra" style="text-align:right;">
+                  <a href="/citation?id={{result.case_id}}" target="_blank"><i class="green check icon"></i>被引用 {{result.citation_count}} 次</a> 
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="ui divider"></div>
+        {% endfor %}  
+      {% elif  data.hasCriteria%}
+        <div style="text-align:center;">
+          <h1 class="ui teal header"> 查無結果，請修改搜尋條件 </h1>
+        </div>
+      {% else %}
+        <div style="text-align:center;">
+          <h1 class="ui teal header">請輸入關鍵詞開始查詢 </h1>
+        </div>
+        
+      {% endif %}
+
+    </div>
+    {% if data.count > 0 %}
+      <div style="width:{{data.paginationWidth}};margin: 0 auto;">
+        <div class="ui pagination menu" >
+          {%for page in data.pageOptions %}
+            {% if page > 0 and page < data.maxPage %}
+
+              {% if page == data.pageNumber %}
+                <a class="active item">
+                  {{page}}
+                </a>
+              {% elif page < data.pageNumber - 5 %}
+                <a class="item page-option" id='page-{{page}}'>
+
+                  ﹣{{data.pageNumber - page}}
+              {% elif page > data.pageNumber + 5 %}
+                <a class="item page-option" id='page-{{page}}'>
+    
+                  ＋{{page - data.pageNumber }}
+              {% else %}
+                <a class="item page-option" id='page-{{page}}'>
+                  {{page}}
+                </a>
+
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+        </div>
+      </div> 
+    {% endif %}
+  </div>
+
+</div>  
+
+<div class="ui small modal" id="court-modal">
+  <i class="close icon"></i>
+  <div class="header">
+    高等法院
+  </div>
+  <div style="padding:10px;">
+    {%for location in data.highLocations %}
+      {%if location == '-'%}
+        <div class="ui divider"></div>
+      {%else%}
+        <span style="margin:10px;">
+          <input id="court-高等法院{{location}}" class="change-criteria" type="checkbox">
+          <label class="search-option-text">{{location}}</label>
+        </span>
+      {%endif%}
+
+    {%endfor%}
+  </div>
+  <div class="header">
+    地方法院
+  </div>
+  <div style="padding:10px;">
+    {%for location in data.locations %}
+      {%if location == '-'%}
+        <div class="ui divider"></div>
+      {%else%}
+        <span style="margin:10px;">
+          <input id="court-{{location}}地方法院" class="change-criteria" type="checkbox">
+          <label class="search-option-text">{{location}}</label>
+        </span>
+      {%endif%}
+
+    {%endfor%}
+  </div>
+  <div class="header">
+    其他法院
+  </div>
+  <div style="padding:10px;">
+    {%for location in data.otherLocations %}
+      {%if location == '-'%}
+        <div class="ui divider"></div>
+      {%else%}
+        <span style="margin:10px;">
+          <input id="court-{{location}}" class="change-criteria" type="checkbox">
+          <label class="search-option-text">{{location}}</label>
+        </span>
+      {%endif%}
+
+    {%endfor%}
+  </div>
+  <div class="actions" style="margin-top:20px;text-align:right;">
+    <div class="ui cancel button" id="modal-cancel">取消</div>
+  </div>
+  
+</div>
+
+<div class="ui small modal" id="date-modal">
+  <i class="close icon"></i>
+  <div class="header">
+    案件時間範圍
+  </div>
+  <div class="ui input" style="padding:10px;height:80px;">
+    <span id="date-search">
+      <input id="begin-year" type="text" placeholder="" class="date-input">
+      <span class="search-bar-span">年 </span>
+      <input id="begin-month" type="text" placeholder="" class="date-input">
+      <span class="search-bar-span">月</span>
+      <input id="begin-day" type="text" placeholder="" class="date-input">
+      <span class="search-bar-span">日</span>
+      <span class="search-bar-span">~</span>
+      <input id="finish-year" type="text" placeholder="" class="date-input">
+      <span class="search-bar-span">年 </span>
+      <input id="finish-month" type="text" placeholder="" class="date-input">
+      <span class="search-bar-span">月</span>
+      <input id="finish-day" type="text" placeholder="" class="date-input">
+      <span class="search-bar-span">日 </span>
+    </span>
+  </div>
+  <div class="actions" style="margin-top:20px;text-align:right;">
+    <div class="ui teal button" id="date-search-button">搜尋</div>
+    <div class="ui cancel button" id="modal-cancel">取消</div>
+  </div>  
+</div>
+
+</body>
+
+<script>
+  
+  $('.ui.dropdown').dropdown();
+
+  $('.ui.modal').modal();
+
+  $('.sorting-info').popup();
+
+
+  //console.log('{{data.criteria}}');
+  
+  var criteria = {{data.criteria|tojson}};
+
+  var analyzingCriteria = {{data.analyzingCriteria|tojson}};
+
+  var pageNumber = {{data.pageNumber}}; 
+
+  var startDate = '{{data.startDate}}';
+
+  var endDate = '{{data.endDate}}';
+
+  var startYear = {{data.startYear}};
+
+  var endYear = {{data.endYear}};
+
+  var sorting = '{{data.sorting}}';
+
+  var keywordCategory = '全文';
+
+  var duration = [startDate,endDate];
+
+  //console.log(analyzingCriteria);
+
+  function isInt(numericStr){
+    return (Math.floor(numericStr) == numericStr && $.isNumeric(numericStr) && numericStr > 0);
+  };
+
+  function redirect(pageNumber,sorting,criteria,duration){
+    var url = '/?page_number=' + pageNumber + '&sorting=' + sorting + '&start_date=' + duration[0] + '&end_date=' + duration[1];
+
+    for (var i = 0; i < criteria.length; i++) {
+      url += '&criteria='+ criteria[i];
+    };
+
+    window.location.href = url;
+
+  }
+
+  function displayConditions(){
+    for (var i = 0; i < analyzingCriteria.length; i++) {
+      //console.log(analyzingCriteria[i]);
+      if (analyzingCriteria[i].indexOf('category')!=-1 || analyzingCriteria[i].indexOf('court')!=-1){
+        //console.log(analyzingCriteria[i].replace('：','-'));
+        $('#'+analyzingCriteria[i].replace('：','-')).prop('checked', true);
+      }
+    };
+
+  }
+
+  function add_keyword (positive) {
+
+    var connector = '：-';
+
+    if (positive){
+      var connector = '：';
+    }
+
+    if (keywordCategory == '字號'){
+      if ($('#id-year').val() != ''){
+        criteria.push(keywordCategory+ connector +$('#id-year').val()+'年度');
+      }
+      if ($('#id-name').val() != ''){
+        criteria.push(keywordCategory+ connector +$('#id-name').val());
+      }      
+      if ($('#id-number').val() != ''){
+        criteria.push(keywordCategory+ connector +'第' +$('#id-number').val() + '號');
+      }
+      redirect(1, sorting, criteria,duration);
+    } else if (keywordCategory == '法條'){
+      var keyword = '';
+      if ($('#law-name').val() != ''){
+        keyword += $('#law-name').val();
+      }
+      if ($('#law-number').val() != ''){
+        keyword += ' ' + $('#law-number').val();
+        if ($('#law-subnumber').val() != ''){
+          keyword += '-' + $('#law-subnumber').val();
+        }
+      }
+      if (keyword != ''){
+        criteria.push(keywordCategory + connector+keyword);
+        redirect(1, sorting, criteria,duration);
+      }
+    }else{
+      var keywordStr = $('#search-keyword').val();
+      if (keywordStr != ''){
+        var keywords = keywordStr.split(' ');
+        for (var i in keywords){
+          criteria.push(keywordCategory + connector+keywords[i]);
+        }
+        redirect(1, sorting, criteria,duration);        
+      }
+
+    }
+  }
+
+  displayConditions();
+
+  
+  //handle events below
+
+
+
+  $('.keyword-category').click(function(){
+
+    keywordCategory = $(this).text();
+
+  });
+
+  $('#search-keyword').keypress(function(evt){
+
+    if (evt.which == 13){
+      add_keyword(true);
+    }
+  });
+
+
+  $('#search-button').click(function(){
+
+    add_keyword(true);
+    
+  });
+
+  $('#negative-button').click(function(){
+
+    add_keyword(false);
+    
+  });
+
+  $('.change-criteria').click(function(){
+    var criteriaId = this.id;
+
+    criteriaId = criteriaId.replace('-','：').replace('court','法院層級').replace('category','判決類型').replace('_',' ');
+
+    if (this.checked){
+      criteria.push(criteriaId);
+    }else{
+      var criteriaIndex = criteria.indexOf(criteriaId);
+      criteria.splice(criteriaIndex, 1);
+
+    }
+
+    redirect(1, sorting, criteria, duration);
+  });
+
+  $('.remove-criteria').click(function(){
+
+    var criteriaIndex = this.id.split('-')[2];
+    criteria.splice(criteriaIndex, 1);
+    redirect(1, sorting, criteria,duration);
+  });
+
+  $('a.sorting-option').click(function(){
+    sorting = this.id.split('-')[2];
+    redirect(1, sorting, criteria, duration);
+  });
+
+  $('a.page-option').click(function(){
+    pageNumber = this.id.split('-')[1];
+    redirect(pageNumber, sorting, criteria, duration);
+  });
+  
+  $('a#individual-court').click(function(){
+    $('#court-modal').modal('show');
+  });
+
+  $('a#specific-date').click(function(){
+    $('#date-modal').modal('show');
+  });
+
+
+  $('.result-link').click(function(){
+    var caseId = this.id;
+    //console.log($(this).hasClass('highlight-keyword'));
+    var resultUrl = '/judgement?id=' + caseId;
+
+    
+    for (var i = 0; i < criteria.length; i++) {
+      resultUrl += '&criteria='+ criteria[i];
+    };
+    if ($(this).hasClass('highlight-keyword')){
+      resultUrl += '&highlight_position=0'
+    }
+    var win = window.open(resultUrl,'_blank');
+    win.focus();
+    
+  });
+
+  $('#date-search-button').click(function(){
+    var begin = [parseInt($('#begin-year').val()),parseInt($('#begin-month').val()),parseInt($('#begin-day').val())];
+
+    var finish = [parseInt($('#finish-year').val()),parseInt($('#finish-month').val()),parseInt($('#finish-day').val())];
+
+    if (isInt(begin[0])&&isInt(begin[1])&&isInt(begin[2])&&isInt(finish[0])&&isInt(finish[1])&&isInt(finish[2])){
+
+      if (begin[1] > 12 || finish[1] > 12 || begin[2] > 31 || finish[2] > 31){
+        alert('請輸入正確日期格式');
+      }else {
+        var dateValid = true;
+        if (begin[0] > finish[0]){
+          dateValid = false;
+          console.log('year wrong');
+        }else if (begin[0] == finish[0]){
+          if (begin[1] > finish[1]){
+            dateValid =false;
+            console.log('year equal month wrong');
+          }else if (begin[1] == finish[1]){
+            if (begin[2] > finish[2]){
+              dateValid = false;
+            }
+          }
+        }
+
+        if (dateValid){
+          var startDate = begin.join('-');
+          var endDate =finish.join('-');
+          var newDuration = [startDate,endDate];
+          console.log(newDuration);
+          redirect(1, sorting, criteria, newDuration);
+          //console.log(startDate);          
+        }else{
+          alert('起始日期不能大於結束日期');
+        }
+
+
+      }
+
+    }else{
+      alert('請輸入正確日期格式');
+
+    }
+
+
+  });
+
+
+  $( function() {
+    $( "#slider-range" ).slider({
+      range: true,
+      min: 88,
+      max: 105,
+      values: [ startYear, endYear ],
+      slide: function( event, ui ) {
+        var newDuration = [ui.values[0], ui.values[1]];
+        if (ui.values[0] > 88){
+          var startYearStr = '民國' + ui.values[0] + '年'; 
+        }else{
+          var startYearStr = '開國';
+        }
+
+        if (ui.values[1] < 105){
+          var endYearStr = '民國' + ui.values[1] + '年'; 
+        }else{
+          var endYearStr = '最新';
+        }
+
+        $('#start-year').text(startYearStr);
+        $('#end-year').text(endYearStr);
+
+        if ((newDuration[0]==88 && duration[0]!=88) || (newDuration[1]==105&& duration[1]!=105)){
+          redirect(1, sorting, criteria, newDuration);
+        }else{
+          duration =newDuration;
+        }
+      }
+    });
+  });
+
+  $('#slider-container').mouseup(function(){
+    redirect(1, sorting, criteria, duration);
+  });
+  
+  $('.dropdown')
+  .dropdown({
+    onChange: function(value, text, $selectedItem) {
+      if (value=='字號'){
+        $('#search-keyword').hide();
+        $('#law-search').hide();
+        $('#id-search').show();
+      }else if (value =='法條'){
+        $('#search-keyword').hide();
+        $('#law-search').show();
+        $('#id-search').hide();        
+      }else{
+        $('#search-keyword').show();
+        $('#law-search').hide();
+        $('#id-search').hide();         
+      }
+    }
+  });
+
+</script>
+
+</html>

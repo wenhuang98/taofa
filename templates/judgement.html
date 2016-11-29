@@ -1,0 +1,114 @@
+<html>
+<head>
+<meta charset="UTF-8">
+
+<link rel="shortcut icon" type="image/png" href="{{url_for('static',filename='favicon-16x16.png')}}"/>
+
+<style>
+
+  .highlight-text {
+    color: red;
+  }
+
+  #main-content {
+    font-size: 20px;
+    line-height: 28px;
+    text-align: justify;
+    padding-right: 50px;
+  }
+
+  #right-pane {
+    padding-left: 50px;
+    font-size: 16px;
+    line-height: 20px;
+    background-color: rgb(245, 245, 245);
+  }
+
+  .line {
+    height: 10px;
+  }
+
+</style>
+
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.js"></script> 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-84401327-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+<title>{{data.long_case_id}}</title>
+
+</head>
+<body>
+{% if data.noResult %}
+  <div style="text-align:center;margin-top:50px"><h1 class="ui teal header">抱歉，目前本系統尚未收錄此判決 </h1><h3 class="ui header"> 我們會記錄您的查詢，并盡快將此判決收錄</h3></div>
+{% else %}
+  <div class="ui grid" style="margin:50px;">
+
+    <div class="ten wide column" id="main-content">
+      <b>字號：{{data.long_case_id}} </b>
+      <div class='line'></div>
+      <b>日期：{{data.date}} </b>
+      <div class='line'></div>
+      <b>案由：{{data.reason}} </b>
+      <div class='line'></div>
+      <b>全文：</b>
+      <div class='line'></div>
+      {{data.content|safe}}
+    </div>
+    <div class="six wide column" id="right-pane">
+      {%if data.has_supreme%}
+        <h2 class="ui header">最高法院案例引用</h2>
+        {% for case in data.display_supreme %}
+          <a href="/judgement?case_id={{case.link}}" target='_blank'>{{case.display}}</a><div class='line'></div>
+        {%endfor%}
+      {%endif%}
+
+      {%if data.has_previous%}
+        <h2 class="ui header">歷審裁判</h2>
+        {% for case in data.display_previous_trials %}
+          <a href="/judgement?case_id={{case.link}}" target='_blank'>{{case.display}}</a><div class='line'></div>
+        {%endfor%}
+      {%endif%}
+
+      {%if data.has_related%}
+        <h2 class="ui header">相關法條</h2>
+        {% for case in data.related_law %}
+          {{case}}<div class='line'></div>
+        {%endfor%}
+      {%endif%}
+
+    </div>
+  </div> 
+
+{% endif %} 
+
+
+
+</body>
+
+<script>
+
+  var highlightPosition = {{data.highlightPosition}};
+
+  if (highlightPosition >= 0){
+    $('html,body').animate({
+      scrollTop: $(".highlight-text").offset().top-20},
+      'slow');   
+  }
+
+</script>
+
+</html>
