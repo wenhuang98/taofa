@@ -492,7 +492,9 @@
       if (keywordStr != ''){
         var keywords = keywordStr.split(' ');
         for (var i in keywords){
-          criteria.push(keywordCategory + connector+keywords[i]);
+          if (keywords[i] != ''){
+            criteria.push(keywordCategory + connector+keywords[i]);            
+          }
         }
         redirect(1, sorting, criteria,duration);        
       }
