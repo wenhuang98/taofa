@@ -109,56 +109,65 @@
       'slow');   
   }
   
-  function pTabs(ss) {
-   function parseTable(ss){
-    function parseTd(ss, cur2, ncol){
-      var sArray=[]; for(var i = 0; i < ncol; i++) sArray[i]="";   
-      var tds = ss.substring(1, cur2).split('│');
-      var col = -1;
-      for (i in tds) {
-        if (col == ncol + 1){
-          for (sa in sArray) sArray[sa] += "<br/>"; 
-          col = 0;
-        }
-        if (col >= 0 && col < ncol)  sArray[col] += tds[i];  
-          col++;   
-      }
-        return sArray;
+function pTabs(ss) {
+  function parseTd(ss, cur2, ncol){
+   var sArray=[]; for(var i = 0; i < ncol; i++) sArray[i]="";   
+   var tds = ss.substring(0, cur2).split('│');
+   var col = -1;
+   for (i in tds) {
+    if (col == ncol + 1){
+     for (sa in sArray) {
+      if(sArray[sa].substr(-4,4)!= "<hr>") 
+        sArray[sa] += "<br>"; 
+     }  
+     col = 0;
     }
- 
+    if (col >= 0 && col < ncol)  sArray[col] += tds[i];  
+    col++;   
+   }
+   return sArray;
+  }
+  function parseTable(ss){ 
     var ncol = 0; // # of column
-    var sameRow = 0;
     var s =""; 
     // ┌──┬─────┬────────────────────┐
     var cur1 = ss.indexOf("┐"); 
     if(cur1<0) return ""; 
     ncol = ((ss.substring(1,cur1)).split("┬")).length;
- ss = ss.substring(cur1);
+    ss = ss.substring(cur1+1);
     s += '<table style="width:100%; border:3px #cccccc solid;" cellpadding="10" border="1"><tr><th>';    
     //│編號│所有權人│原告分得部分之應有部分比例│││││├  
     var cur2 = ss.indexOf("├"); 
     if(cur2<0) return "";
- s += parseTd(ss, cur2, ncol).join('</th><th>') + '</th></tr>';
+    s += parseTd(ss, cur2, ncol).join('</th><th>') + '</th></tr>';
     ss = ss.substr(cur2);
     //├──┼─────┼────────────────────┤
-    //│3│原告xxx│8628分之2561│
+    //│3│原告xxx│8628分之2561││││..│
     //└──┴─────┴────────────────────┘
-    while(cur2 >= 0){
-     cur1 = ss.indexOf("┤"); 
-  // ncol = (ss.substring(1,cur1).split("┼")).length;
-     if(cur1<0) return "";
-     ss = ss.substring(cur1);
+    cur1 = ss.indexOf("┤"); 
+    if(cur1<0) return "";
+    ss = ss.substring(cur1+1);    
+    while(1){
      cur2 = ss.indexOf("├"); 
-     if(cur2<0) cur2 = ss.indexOf("└");
+     if(cur2 >= 0){ 
+       cur1 = ss.indexOf("┤"); 
+       if(cur1<0) return "";
+       if((ss.substring(cur2,cur1)).indexOf("┼")<0){ //├──────────┤
+         ss = ss.substring(0,cur2) + "│<hr>│" + ss.substring(cur1+1);
+         continue;
+       }
+     } else {
+       cur2 = ss.indexOf("└");
+     }
      if(cur2<0) return "";
-  s += '<tr><td>' + parseTd(ss, cur2, ncol).join('</td><td>') + '</td></tr>';
-     ss = ss.substring(cur2);  
-     cur2 = ss.indexOf("├"); 
+     s += '<tr><td>' + parseTd(ss, cur2, ncol).join('</td><td>') + '</td></tr>';
+     if(ss[cur2] == "└") break;  
+     ss = ss.substring(cur1+1);
     }
     s += '</table>';
     return s;
   }
-   
+ 
    var sout = "";
    var cur=0;
    while(cur >= 0){
@@ -178,9 +187,9 @@
     ss = ss.substring(cur+1);
    }
    return sout + ss;
-  }
-
+ }
   document.getElementById("main-content").innerHTML =pTabs(document.getElementById("main-content").innerHTML)
+
 
 
 </script>
